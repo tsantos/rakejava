@@ -128,23 +128,25 @@ module RakeJava
 				mod_time = File.mtime(src_file)
 				base = File.basename(src_file, ".java")
 				parent = File.dirname(src_file)
+				classfiles = []
+				
 				if @dest
-					# Figure out how to find the matching class files
-					changed << src_file
+					base_path = parent[sources.root.length+1..-1]
+					classfiles = Dir["#{@dest}/#{base_path}/#{base}*.class"]
 				else
 					# Look next to it
 					classfiles = Dir["#{parent}/#{base}*.class"]
+				end
 					
-				 	unless classfiles.empty?
-						classfiles.each do |classfile|
-							if File.mtime(classfile) < mod_time
-								changed << src_file
-								break
-							end
+			 	unless classfiles.empty?
+					classfiles.each do |classfile|
+						if File.mtime(classfile) < mod_time
+							changed << src_file
+							break
 						end
-					else
-						changed << src_file
 					end
+				else
+					changed << src_file
 				end
 			end
 			changed
