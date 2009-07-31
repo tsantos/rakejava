@@ -91,6 +91,13 @@ class JarFiles < Rake::FileList
 			@resolving = true
 			pushd @root
 			super
+			# Hack time because the jar command is busted.  Every arg after the
+			# first file listed after a -C needs to have paths relative to the
+			# command-launch rather than the -C specified dir.  The first file arg
+			# after a -C works but subsequent ones fail.
+			hack = @items.shift
+			@items.map! { |i| "#{@root}#{File::SEPARATOR}#{i}" }
+			@items.unshift(hack)
 			popd
 			@resolving = false
 		end
@@ -223,7 +230,7 @@ module RakeJava
 			cmd = "jar #{flags} #{@name}#{manifest_path}"
 			
 			@files.each do |file_list|
-				cmd << " -C #{file_list.root} #{space_sep(file_list)}"
+				cmd << " -C #{file_list.root} #{space_sep(path_esc(file_list))}"
 			end
 			
 			max_cmd_len = 500
