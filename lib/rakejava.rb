@@ -23,6 +23,42 @@ require 'rake'
 require 'set'
 require 'tempfile'
 
+module RakeJavaUtil
+	def pushd dir
+		pushd_stack.unshift(Dir.pwd)
+		cd dir
+	end
+
+	def popd
+		cd pushd_stack.shift
+	end
+	
+	def pushd_stack
+		unless defined?(@pushd_stack)
+			@pushd_stack = []
+		end
+		@pushd_stack
+	end
+	
+	def path_esc str_ary
+		str_ary.map { |str| str.gsub('$', '\$').gsub(' ', '\ ') }
+	end
+
+	def path_sep str_ary
+		separate(str_ary, File::PATH_SEPARATOR)
+	end
+	
+	def space_sep str_ary
+		separate(str_ary, ' ')
+	end
+
+	def separate str_ary, sep
+		result = ""
+		str_ary.each { |str| result << "#{str}#{sep}" }
+		result.chop!
+	end
+end
+
 class Sources < Rake::FileList
 	attr_accessor :root
 	
@@ -39,38 +75,34 @@ class Sources < Rake::FileList
 	end
 end
 
-module RakeJava
-	class RakeJavaTask < Rake::Task
-		def initialize name, app
-			super
-			@pushd_stack = []
-		end
-
-		def pushd dir
-			@pushd_stack.unshift(`pwd`.chop)
-			cd dir
-		end
-
-		def popd
-			cd @pushd_stack.shift
-		end
-
-		def path_sep str_ary
-			separate(str_ary, File::PATH_SEPARATOR)
-		end
-		def space_sep str_ary
-			separate(str_ary, ' ')
-		end
-
-		def separate str_ary, sep
-			result = ""
-			str_ary.each { |str| result << "#{str}#{sep}" }
-			result.chop!
-		end
+class JarFiles < Rake::FileList
+	include RakeJavaUtil
+	
+	attr_accessor :root
+	
+	def initialize *args
+		@root = args.shift
+		@resolving = false
+		super
 	end
 	
-	class JavacTask < RakeJavaTask
-		attr_accessor :srcpath, :bootpath, :classpath, :src, :dest, :args
+	def resolve
+		unless @resolving
+			@resolving = true
+			pushd @root
+			super
+			popd
+			@resolving = false
+		end
+		self
+	end
+end
+
+module RakeJava
+	class JavacTask < Rake::Task
+		include RakeJavaUtil
+		
+		attr_accessor :bootpath, :classpath, :src, :dest, :args
 		attr_accessor :src_ver, :dest_ver, :debug
 		
 		def initialize name, app
@@ -86,6 +118,8 @@ module RakeJava
 			files = src_files
 			
 			unless files.empty?
+				srcpath = @src.map { |src| src.root }
+				
 				cmd = "javac"
 				cmd << " -bootclasspath #{path_sep(@bootpath)}"	unless @bootpath.empty?
 				cmd << " #{@args}"										if @args
@@ -93,7 +127,7 @@ module RakeJava
 				cmd << " -g"												if @debug
 				cmd << " -source #{@src_ver}"							if @src_ver
 				cmd << " -target #{@dest_ver}"						if @dest_ver
-				cmd << " -sourcepath #{path_sep(@srcpath)}"		unless @srcpath.empty?
+				cmd << " -sourcepath #{path_sep(srcpath)}"		if srcpath
 				cmd << " -d #{@dest}"									if @dest
 				cmd << " #{space_sep(files)}"
 				
@@ -153,30 +187,52 @@ module RakeJava
 		end
 	end
 	
-	class JarTask < RakeJavaTask
-		attr_accessor :root, :files, :manifest
+	class JarTask < Rake::Task
+		include RakeJavaUtil
+		
+		attr_accessor :root, :files, :main_class, :manifest
 		
 		def initialize name, app
 			super
+			@root = "."
 			@files = []
 		end
 		
 		def execute args=nil
-			files = ""
-			pushd @root
-			FileList[@files].to_a.each do |file|
-				
+			super
+			
+			flags = "cf"
+			jar = File.expand_path(@name)
+			
+			if @main_class
+				unless @manifest
+					@manifest = {}
+				end
+				@manifest["Main-Class"] = @main_class
 			end
-			`jar cf #{@name} #{files}`
-			popd
-		end
-		
-		def files files
-			if files.kind_of? Array
-				files.each { |item| @contents << item }
+			manifest_path = " "
+			if @manifest
+				flags << "m"
+				if @manifest.kind_of? Hash
+					manifest_path << create_manifest
+				elsif @manifest.kind_of? String
+					manifest_path << File.expand_path(@manifest)
+				end
+			end
+			
+			cmd = "jar #{flags} #{@name}#{manifest_path}"
+			
+			@files.each do |file_list|
+				cmd << " -C #{file_list.root} #{space_sep(file_list)}"
+			end
+			
+			max_cmd_len = 500
+			if cmd.length < max_cmd_len
+				puts cmd
 			else
-				@contents << files
+				puts cmd[0..max_cmd_len] + "..."
 			end
+			puts `#{cmd}`
 		end
 		
 		protected
@@ -194,7 +250,7 @@ module RakeJava
 				f.puts(manifest)
 			end
 			
-			File.expand_path(file)
+			file.path
 		end
 	end
 end

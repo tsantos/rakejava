@@ -1,1 +1,25 @@
 RakeJava is a ruby gem for use with Rake.  It lets you compile and jar Java files.
+
+Example:
+
+require 'rakejava'
+require 'rake/clean'
+
+CLEAN.include 'build/*'
+
+task :default => "myproj.jar"
+
+jar "myproj.jar" => :compile do |t|
+	t.root = "build"
+	t.files << FileList["*.class"]
+	t.manifest = {:version => '1.0.0'}
+end
+
+javac :compile => "build" do |t|
+	t.src << Sources["src", "**/*.java"]
+	t.src << Sources["test", "*.java"]
+	t.dest = 'build'
+end
+
+directory "build"
+
