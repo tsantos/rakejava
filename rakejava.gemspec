@@ -2,7 +2,7 @@ require 'rake'
 
 Gem::Specification.new do |s| 
   s.name = "rakejava"
-  s.version = "1.0.0"
+  s.version = "1.0.1"
   s.author = "Tom Santos"
   s.email = "santos.tom@gmail.com"
   s.platform = Gem::Platform::RUBY
