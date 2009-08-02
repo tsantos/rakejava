@@ -197,7 +197,7 @@ module RakeJava
 	class JarTask < Rake::Task
 		include RakeJavaUtil
 		
-		attr_accessor :root, :files, :main_class, :manifest
+		attr_accessor :files, :main_class, :manifest
 		
 		def initialize name, app
 			super
