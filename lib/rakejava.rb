@@ -91,6 +91,7 @@ class JarFiles < Rake::FileList
 			@resolving = true
 			pushd @root
 			super
+			puts "Resolving JarFiles list"
 			# Hack time because the jar command is busted.  Every arg after the
 			# first file listed after a -C needs to have paths relative to the
 			# command-launch rather than the -C specified dir.  The first file arg
