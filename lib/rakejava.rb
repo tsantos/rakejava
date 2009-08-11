@@ -198,7 +198,7 @@ module RakeJava
 	class JarTask < Rake::Task
 		include RakeJavaUtil
 		
-		attr_accessor :files, :main_class, :manifest
+		attr_accessor :files, :main_class, :manifest, :sign_info
 		
 		def initialize name, app
 			super
@@ -241,6 +241,19 @@ module RakeJava
 				puts cmd[0..max_cmd_len] + "..."
 			end
 			puts `#{cmd}`
+			
+			# Now, sign the jar if we're asked to.  This only supports the
+			# arguments that I need for my project at the moment.
+			if @sign_info
+				cmd = "jarsigner"
+				cmd << " -storetype #{@sign_info[:store_type]}"
+				cmd << " -keystore #{@sign_info[:key_store]}"
+				cmd << " -storepass #{@sign_info[:store_pass]}"
+				cmd << " #{@name}"
+				cmd << " #{@sign_info[:alias]}"
+				puts cmd
+				puts `#{cmd}`
+			end
 		end
 		
 		protected
