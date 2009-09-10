@@ -240,6 +240,7 @@ module RakeJava
 			else
 				puts cmd[0..max_cmd_len] + "..."
 			end
+
 			puts `#{cmd}`
 			
 			# Now, sign the jar if we're asked to.  This only supports the
@@ -267,10 +268,11 @@ module RakeJava
 				manifest << "#{key}: #{value}"
 			end
 			
-			file = Tempfile.new("manifest", "/tmp") do |f|
+			file = Tempfile.new("manifest", "/tmp")
+			File.open(file.path, "w") do |f|
 				f.puts(manifest)
 			end
-			
+						
 			file.path
 		end
 	end
