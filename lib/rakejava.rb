@@ -146,7 +146,8 @@ module RakeJava
                puts cmd[0..max_cmd_len] + "..."
             end
             puts "Compiling #{files.length} file(s)"
-            puts `#{cmd}`
+            system "#{cmd}"
+            puts
          else
             puts "No files to compile"
          end
@@ -241,7 +242,8 @@ module RakeJava
             puts cmd[0..max_cmd_len] + "..."
          end
 
-         puts `#{cmd}`
+         system "#{cmd}"
+         puts
          
          # Now, sign the jar if we're asked to.  This only supports the
          # arguments that I need for my project at the moment.
@@ -253,7 +255,8 @@ module RakeJava
             cmd << " #{@name}"
             cmd << " #{@sign_info[:alias]}"
             puts cmd
-            puts `#{cmd}`
+            system "#{cmd}"
+            puts
          end
       end
       
