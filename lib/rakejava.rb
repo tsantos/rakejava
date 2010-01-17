@@ -127,6 +127,9 @@ module RakeJava
          
          unless files.empty?
             srcpath = @src.map { |src| src.root }
+
+            @bootpath.flatten!
+            @classpath.flatten!
             
             cmd = "javac"
             cmd << " -bootclasspath #{path_sep(@bootpath)}" unless @bootpath.empty?
