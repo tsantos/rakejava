@@ -208,6 +208,15 @@ module RakeJava
          super
          @root = "."
          @files = []
+
+         # Deal with namespaces.  I have no idea if this 
+         # is a total hack.
+         name =~ /.*?\:(.*)/
+         if $1   
+            @real_name = $1
+         else    
+            @real_name = name
+         end     
       end
       
       def execute args=nil
