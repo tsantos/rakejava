@@ -223,7 +223,7 @@ module RakeJava
          super
          
          flags = "cf"
-         jar = File.expand_path(@name)
+         jar = File.expand_path(@real_name)
          
          if @main_class
             unless @manifest
@@ -241,7 +241,7 @@ module RakeJava
             end
          end
          
-         cmd = "jar #{flags} #{@name}#{manifest_path}"
+         cmd = "jar #{flags} #{@real_name}#{manifest_path}"
          
          @files.each do |file_list|
             cmd << " -C #{file_list.root} #{space_sep(path_esc(file_list))}"
@@ -264,7 +264,7 @@ module RakeJava
             cmd << " -storetype #{@sign_info[:store_type]}"
             cmd << " -keystore #{@sign_info[:key_store]}"
             cmd << " -storepass #{@sign_info[:store_pass]}"
-            cmd << " #{@name}"
+            cmd << " #{@real_name}"
             cmd << " #{@sign_info[:alias]}"
             puts cmd
             system "#{cmd}"
