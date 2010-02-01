@@ -19,7 +19,7 @@ spec = Gem::Specification.new do |s|
 
   s.add_dependency 'rake'
   s.files = %w[
-    README
+    README.markdown
     lib/rakejava.rb
   ]
 end
