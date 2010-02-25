@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 require 'rake/clean'
 
 GEM         = 'rakejava'
-GEM_VERSION = '1.1.5'
+GEM_VERSION = '1.1.6'
 
 spec = Gem::Specification.new do |s|
   s.author      = 'Tom Santos'
@@ -12,7 +12,7 @@ spec = Gem::Specification.new do |s|
   s.name        = GEM
   s.version     = GEM_VERSION
 
-  s.summary     = "Rake tasks for building Java stuff (java and jar)"
+  s.summary     = "Rake tasks for building Java stuff (javac and jar)"
   s.description = s.summary
   s.has_rdoc    = false
   s.platform    = Gem::Platform::RUBY

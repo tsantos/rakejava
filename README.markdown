@@ -1,4 +1,4 @@
-RakeJava is a ruby gem for use with Rake.  It lets you compile and jar Java files.
+RakeJava is a ruby gem for use with Rake.  It lets you javac and jar Java files.
 
 ### Simple Example:
 
