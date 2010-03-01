@@ -211,7 +211,7 @@ module RakeJava
 
          # Deal with namespaces.  I have no idea if this 
          # is a total hack.
-         name =~ /.*?\:(.*)/
+         name =~ /.*\:(.*)/
          if $1   
             @real_name = $1
          else    
