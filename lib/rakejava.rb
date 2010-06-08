@@ -266,10 +266,16 @@ module RakeJava
             cmd << " -storepass #{@sign_info[:store_pass]}"
             cmd << " #{@real_name}"
             cmd << " #{@sign_info[:alias]}"
-            puts cmd
+            puts squelch_pass(cmd, @sign_info[:store_pass])
             system "#{cmd}"
             puts
          end
+      end
+
+      protected
+      def squelch_pass cmd, pass
+        squelch = '*' * pass.length
+        cmd.gsub(/#{pass}/, squelch)
       end
       
       protected
@@ -300,3 +306,5 @@ end
 def jar *args, &block
    RakeJava::JarTask.define_task(*args, &block)
 end
+
+# vi:tabstop=2:expandtab:filetype=ruby

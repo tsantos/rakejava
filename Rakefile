@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 require 'rake/clean'
 
 GEM         = 'rakejava'
-GEM_VERSION = '1.1.7'
+GEM_VERSION = '1.1.8'
 
 spec = Gem::Specification.new do |s|
   s.author      = 'Tom Santos'
