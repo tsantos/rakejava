@@ -74,3 +74,31 @@ Here's an example of using sign_info with the jar task:
       	:alias		=> 'you-know-yours'
       }
     end
+
+-------------------------
+# copy_to #
+
+This is a function that lets you copy files to a destination directory.  What makes this interesting is that by default it won't copy files unless they're newer.  Here's an example:
+
+    task :copy_stuff do
+      copy_to "/my/dest/dir" do |c|
+        c.files << CopyFiles['build/java', '**/*.class'].exclude(/Test.class/)
+        c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('lib')
+        c.files << Dir['ext/**/*.jar']
+        c.force # Normally, only newer files get copied
+      end
+    end
+
+### CopyFiles ###
+
+A `Rake::FileList` where the first argument is the parent directory of the files you want to specify for copying.  The files will end up in the destination with the same relative path to their original parent.
+
+    c.files << CopyFiles['lib', '**/*.{jar,zip}']
+
+You can use `CopyFiles` to collect files and then dump them all into the target directory by using `flatten!()`.
+
+    c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!
+
+You can send all of the files specified in `CopyFiles` to a subdir of the target dir by using `dest()`.
+
+    c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('my_lib')

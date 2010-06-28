@@ -1,10 +1,10 @@
 # RakeJava is a set of custom rake tasks for building Java projects
 #
 # Author: Tom Santos
-# http://github.com/tsantos/rakejava/tree/master
+# http://github.com/tsantos/rakejava
 
 =begin
-Copyright 2009 Tom Santos
+Copyright 2009, 2010 Tom Santos
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -91,10 +91,36 @@ class JarFiles < Rake::FileList
          @resolved = true
          pushd @root
          super
-         puts "Resolving JarFiles list"
+         puts "Resolving #{self.class.name} list"
          @items.map! { |i| "#{@root}#{File::SEPARATOR}#{i}" }
          popd
       end
+      self
+   end
+end
+
+class CopyFiles < JarFiles
+   def initialize *args
+      super
+      @flattened = false
+      @dest = nil
+   end
+
+   def flatten!
+      @flattened = true
+      self
+   end
+
+   def flattened?
+      @flattened
+   end
+
+   def dest_path
+      @dest
+   end
+
+   def dest subdir
+      @dest = subdir.sub(%r[/+$], '') # remove trailing slashes
       self
    end
 end
@@ -199,7 +225,6 @@ module RakeJava
       
       def initialize name, app
          super
-         @root = "."
          @files = []
 
          # Deal with namespaces.  I have no idea if this 
@@ -312,6 +337,76 @@ module RakeJava
          file.path
       end
    end
+
+   # A simple class for copying files from various places to
+   # a single target directory. You can tell it to just copy
+   # files if they're newer than the target version.
+   #
+   class Copier
+      attr_accessor :files
+
+      def initialize dest_dir, &block
+         @files = []
+         @dest_dir = dest_dir.sub(%r[/+$], '') # remove trailing slashes
+         @check_date = true
+         block.call(self)
+      end
+
+      def force
+         @check_date = false
+      end
+
+      def copy
+         dirs = Set.new
+
+         @files.each do |copy_files|
+            src_files = copy_files.to_a
+
+            if copy_files.kind_of?(CopyFiles)
+               partials = src_files.map { |f| f.sub(%r[^#{copy_files.root}/], '') } 
+            else
+               partials = src_files
+            end
+
+            partials.each do |part|
+               if copy_files.kind_of?(CopyFiles)
+                  src_path = "#{copy_files.root}/#{part}"
+                  dest_dir = @dest_dir + (copy_files.dest_path ? "/#{copy_files.dest_path}" : '')
+                  if copy_files.flattened?
+                     dest_path = "#{dest_dir}/#{File.basename(src_path)}"
+                  else
+                     dest_path = "#{dest_dir}/#{part}"
+                  end
+               else
+                  src_path = part
+                  dest_path = "#{@dest_dir}/#{part}"
+               end
+
+               if File.directory?(src_path)
+                  next
+               end
+
+               if @check_date && File.exist?(dest_path)
+                  src_time = File.mtime(src_path)
+                  dest_time = File.mtime(dest_path)
+                  if src_time <= dest_time
+                     next
+                  end
+               end
+
+               # Ensure the path
+               parent = File.dirname(dest_path)
+               unless dirs.include?(parent)
+                  dirs << parent
+                  mkdir_p parent
+               end
+
+               # Copy the file
+               cp src_path, dest_path
+            end
+         end
+      end
+   end
 end
 
 def javac *args, &block
@@ -322,4 +417,9 @@ def jar *args, &block
    RakeJava::JarTask.define_task(*args, &block)
 end
 
-# vi:tabstop=3:expandtab:filetype=ruby
+def copy_to dest_dir, &block
+   copier = RakeJava::Copier.new(dest_dir, &block)
+   copier.copy()
+end
+
+# vim: filetype=ruby tabstop=3 expandtab 
