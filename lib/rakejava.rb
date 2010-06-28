@@ -81,26 +81,19 @@ class JarFiles < Rake::FileList
    attr_accessor :root
    
    def initialize *args
-      @root = args.shift
-      @resolving = false
+      @root = args.shift.sub(%r[/+$], '') # remove trailing slashes
+      @resolved = false
       super
    end
    
    def resolve
-      unless @resolving
-         @resolving = true
+      unless @resolved
+         @resolved = true
          pushd @root
          super
          puts "Resolving JarFiles list"
-         # Hack time because the jar command is busted.  Every arg after the
-         # first file listed after a -C needs to have paths relative to the
-         # command-launch rather than the -C specified dir.  The first file arg
-         # after a -C works but subsequent ones fail.
-         hack = @items.shift
          @items.map! { |i| "#{@root}#{File::SEPARATOR}#{i}" }
-         @items.unshift(hack)
          popd
-         @resolving = false
       end
       self
    end
@@ -221,9 +214,22 @@ module RakeJava
       
       def execute args=nil
          super
-         
+
          flags = "cf"
          jar = File.expand_path(@real_name)
+       
+         all_files = []
+         @files.each do |file_list|
+            all_files << file_list.to_a
+         end
+         all_files.flatten!
+
+         # Bail if there's already a jar file and none of the
+         # source files are newer.
+         if uptodate?(jar, all_files)
+            puts "Jar file is up to date. Nothing to do."
+            return
+         end
          
          if @main_class
             unless @manifest
@@ -244,7 +250,16 @@ module RakeJava
          cmd = "jar #{flags} #{@real_name}#{manifest_path}"
          
          @files.each do |file_list|
-            cmd << " -C #{file_list.root} #{space_sep(path_esc(file_list))}"
+            # Hack time because the jar command is busted.  Every arg after the
+            # first file listed after a -C needs to have paths relative to the
+            # command-launch rather than the -C specified dir.  The first file arg
+            # after a -C works but subsequent ones fail.
+            fixed_list = file_list.to_a
+            unless fixed_list.empty?
+               fixed_list[0].sub!(%r[^#{file_list.root}/], '')
+            end
+
+            cmd << " -C #{file_list.root} #{space_sep(path_esc(fixed_list))}"
          end
          
          max_cmd_len = 500
@@ -307,4 +322,4 @@ def jar *args, &block
    RakeJava::JarTask.define_task(*args, &block)
 end
 
-# vi:tabstop=2:expandtab:filetype=ruby
+# vi:tabstop=3:expandtab:filetype=ruby
