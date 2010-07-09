@@ -39,9 +39,15 @@ module RakeJavaUtil
       end
       @pushd_stack
    end
+
+   def winderz?
+      RUBY_PLATFORM =~ /(win|w)32$/
+   end
    
    def path_esc str_ary
-      str_ary.map { |str| str.gsub('$', '\$').gsub(' ', '\ ') }
+      if !winderz?
+         str_ary.map { |str| str.gsub('$', '\$').gsub(' ', '\ ') }
+      end
    end
 
    def path_sep str_ary
@@ -248,10 +254,20 @@ module RakeJava
             all_files << file_list.to_a
          end
          all_files.flatten!
+         
+         actual_files = []
+         all_files.each do |item|
+            if File.directory?(item)
+               actual_files << Dir["#{item}/**/*"].to_a.select { |f| File.file?(f) }
+            else
+               actual_files << item
+            end
+         end
+         actual_files.flatten!.uniq!
 
          # Bail if there's already a jar file and none of the
          # source files are newer.
-         if uptodate?(jar, all_files)
+         if uptodate?(jar, actual_files)
             puts "Jar file is up to date. Nothing to do."
             return
          end
