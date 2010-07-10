@@ -47,6 +47,8 @@ module RakeJavaUtil
    def path_esc str_ary
       if !winderz?
          str_ary.map { |str| str.gsub('$', '\$').gsub(' ', '\ ') }
+      else
+         str_ary
       end
    end
 
