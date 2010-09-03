@@ -265,7 +265,8 @@ module RakeJava
                actual_files << item
             end
          end
-         actual_files.flatten!.uniq!
+         actual_files.flatten!
+         actual_files.uniq!
 
          # Bail if there's already a jar file and none of the
          # source files are newer.
