@@ -24,6 +24,8 @@ require 'set'
 require 'tempfile'
 
 module RakeJavaUtil
+   include Rake::DSL
+   
    def pushd dir
       pushd_stack.unshift(Dir.pwd)
       cd dir
@@ -99,7 +101,7 @@ class JarFiles < Rake::FileList
          @resolved = true
          pushd @root
          super
-         puts "Resolving #{self.class.name} list"
+         # puts "Resolving #{self.class.name} list"
          @items.map! { |i| "#{@root}#{File::SEPARATOR}#{i}" }
          popd
       end
@@ -362,6 +364,7 @@ module RakeJava
    # files if they're newer than the target version.
    #
    class Copier
+      include Rake::DSL
       attr_accessor :files
 
       def initialize dest_dir, &block
