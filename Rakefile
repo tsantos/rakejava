@@ -1,9 +1,9 @@
 require 'rubygems'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rake/clean'
 
 GEM         = 'rakejava'
-GEM_VERSION = '1.3.4'
+GEM_VERSION = '1.3.5'
 
 spec = Gem::Specification.new do |s|
   s.author      = 'Tom Santos'
@@ -17,14 +17,14 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc    = false
   s.platform    = Gem::Platform::RUBY
 
-  s.add_dependency 'rake'
+  s.add_dependency 'rake', '>= 0.9.2'
   s.files = %w[
     README.markdown
     lib/rakejava.rb
   ]
 end
 
-Rake::GemPackageTask.new(spec) do |pkg| 
+Gem::PackageTask.new(spec) do |pkg| 
   pkg.need_tar = true 
 end 
 
