@@ -1,29 +1,34 @@
 RakeJava is a ruby gem for use with Rake.  It lets you javac and jar Java files.
 
+1.3.3 is the last release that works with Rake version 0.8.7.  Later releases work with 0.9.2.  The Rake folks sure made this hard given how many Rakefiles depend on 0.8.7.
+
+1.3.6 makes JarFiles more robust so you can specify directories instead of the exhaustive list of files.  It also enables JRuby support.
+
 ### Simple Example:
 
-    require 'rakejava'
-    require 'rake/clean'
+```ruby
+require 'rakejava'
+require 'rake/clean'
 
-    CLEAN.include 'build'
+CLEAN.include 'build'
 
-    task :default => "myproj.jar"
+task :default => "myproj.jar"
 
-    jar "myproj.jar" => :compile do |t|
-      t.files << JarFiles["build", "**/*.class"]
-      t.main_class = 'org.whathaveyou.Main'
-      t.manifest = {:version => '1.0.0'}
-    end
+jar "myproj.jar" => :compile do |t|
+  t.files << JarFiles["build", "**/*.class"]
+  t.main_class = 'org.whathaveyou.Main'
+  t.manifest = {:version => '1.0.0'}
+end
 
-    javac :compile => "build" do |t|
-    	t.src << Sources["src", "**/*.java"]
-    	t.src << Sources["test", "*.java"]
-    	t.classpath << Dir["lib/**/*.{zip,jar}"]
-    	t.dest = 'build'
-    end
+javac :compile => "build" do |t|
+	t.src << Sources["src", "**/*.java"]
+	t.src << Sources["test", "*.java"]
+	t.classpath << Dir["lib/**/*.{zip,jar}"]
+	t.dest = 'build'
+end
 
-    directory "build"
-    
+directory "build"
+```
 -------------------------
 
 # javac #
@@ -42,9 +47,9 @@ This task is a wrapper around Java's javac command and it supports most of the u
 ### Sources ###
 
 A `Rake::FileList` where the first argument specified is the top of a source tree.  Example:
-
-    task.src << Sources["src", "**/*.java"]
-
+```ruby
+task.src << Sources["src", "**/*.java"]
+```
 -------------------------
 # jar #
 
@@ -58,47 +63,49 @@ This task is a wrapper around Java's jar command and it supports all of its argu
 ### JarFiles ###
 
 A `Rake::FileList` where the first argument specified is the top directory of a source of files to jar.
-
-    t.files << JarFiles["build", "**/*.class", "**/*.properties"]
+```ruby
+t.files << JarFiles["build", "**/*.class", "**/*.properties"]
+```
 
 ### sign_info ###
 
 Here's an example of using sign_info with the jar task:
-
-    jar "myproj.jar" => :compile do |t|
-      t.files << JarFiles["build", "**/*.class"]
-      t.sign_info = {
-      	:store_type	=> 'pkcs12',
-      	:key_store	=> 'certs/keystore.p12',
-      	:store_pass	=> 'you-know-yours',
-      	:alias		=> 'you-know-yours'
-      }
-    end
-
+```ruby
+jar "myproj.jar" => :compile do |t|
+  t.files << JarFiles["build", "**/*.class"]
+  t.sign_info = {
+  	:store_type	=> 'pkcs12',
+  	:key_store	=> 'certs/keystore.p12',
+  	:store_pass	=> 'you-know-yours',
+  	:alias		=> 'you-know-yours'
+  }
+end
+```
 -------------------------
 # copy_to #
 
 This is a function that lets you copy files to a destination directory.  What makes this interesting is that by default it won't copy files unless they're newer.  Here's an example:
-
-    task :copy_stuff do
-      copy_to "/my/dest/dir" do |c|
-        c.files << CopyFiles['build/java', '**/*.class'].exclude(/Test.class/)
-        c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('lib')
-        c.files << Dir['ext/**/*.jar']
-        c.force # Normally, only newer files get copied
-      end
-    end
-
+```ruby
+task :copy_stuff do
+  copy_to "/my/dest/dir" do |c|
+    c.files << CopyFiles['build/java', '**/*.class'].exclude(/Test.class/)
+    c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('lib')
+    c.files << Dir['ext/**/*.jar']
+    c.force # Normally, only newer files get copied
+  end
+end
+```
 ### CopyFiles ###
 
 A `Rake::FileList` where the first argument is the parent directory of the files you want to specify for copying.  The files will end up in the destination with the same relative path to their original parent.
-
-    c.files << CopyFiles['lib', '**/*.{jar,zip}']
-
+```ruby
+c.files << CopyFiles['lib', '**/*.{jar,zip}']
+```
 You can use `CopyFiles` to collect files and then dump them all into the target directory by using `flatten!()`.
-
-    c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!
-
+```ruby
+c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!
+```
 You can send all of the files specified in `CopyFiles` to a subdir of the target dir by using `dest()`.
-
-    c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('my_lib')
+```ruby
+c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('my_lib')
+```
