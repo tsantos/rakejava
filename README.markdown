@@ -29,6 +29,7 @@ end
 
 directory "build"
 ```
+
 -------------------------
 
 # javac #
@@ -50,6 +51,7 @@ A `Rake::FileList` where the first argument specified is the top of a source tre
 ```ruby
 task.src << Sources["src", "**/*.java"]
 ```
+
 -------------------------
 # jar #
 
@@ -81,6 +83,7 @@ jar "myproj.jar" => :compile do |t|
   }
 end
 ```
+
 -------------------------
 # copy_to #
 
@@ -95,16 +98,19 @@ task :copy_stuff do
   end
 end
 ```
+
 ### CopyFiles ###
 
 A `Rake::FileList` where the first argument is the parent directory of the files you want to specify for copying.  The files will end up in the destination with the same relative path to their original parent.
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}']
 ```
+
 You can use `CopyFiles` to collect files and then dump them all into the target directory by using `flatten!()`.
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!
 ```
+
 You can send all of the files specified in `CopyFiles` to a subdir of the target dir by using `dest()`.
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('my_lib')
