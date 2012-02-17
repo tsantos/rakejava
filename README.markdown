@@ -6,6 +6,7 @@ RakeJava is a ruby gem for use with Rake.  It lets you javac and jar Java files.
 
 ### Simple Example:
 
+
 ```ruby
 require 'rakejava'
 require 'rake/clean'
@@ -48,6 +49,7 @@ This task is a wrapper around Java's javac command and it supports most of the u
 ### Sources ###
 
 A `Rake::FileList` where the first argument specified is the top of a source tree.  Example:
+
 ```ruby
 task.src << Sources["src", "**/*.java"]
 ```
@@ -65,6 +67,7 @@ This task is a wrapper around Java's jar command and it supports all of its argu
 ### JarFiles ###
 
 A `Rake::FileList` where the first argument specified is the top directory of a source of files to jar.
+
 ```ruby
 t.files << JarFiles["build", "**/*.class", "**/*.properties"]
 ```
@@ -72,6 +75,7 @@ t.files << JarFiles["build", "**/*.class", "**/*.properties"]
 ### sign_info ###
 
 Here's an example of using sign_info with the jar task:
+
 ```ruby
 jar "myproj.jar" => :compile do |t|
   t.files << JarFiles["build", "**/*.class"]
@@ -88,6 +92,7 @@ end
 # copy_to #
 
 This is a function that lets you copy files to a destination directory.  What makes this interesting is that by default it won't copy files unless they're newer.  Here's an example:
+
 ```ruby
 task :copy_stuff do
   copy_to "/my/dest/dir" do |c|
@@ -102,16 +107,19 @@ end
 ### CopyFiles ###
 
 A `Rake::FileList` where the first argument is the parent directory of the files you want to specify for copying.  The files will end up in the destination with the same relative path to their original parent.
+
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}']
 ```
 
 You can use `CopyFiles` to collect files and then dump them all into the target directory by using `flatten!()`.
+
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!
 ```
 
 You can send all of the files specified in `CopyFiles` to a subdir of the target dir by using `dest()`.
+
 ```ruby
 c.files << CopyFiles['lib', '**/*.{jar,zip}'].flatten!.dest('my_lib')
 ```
