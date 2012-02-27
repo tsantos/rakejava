@@ -4,7 +4,7 @@
 # http://github.com/tsantos/rakejava
 
 =begin
-Copyright 2009, 2010 Tom Santos
+Copyright 2009, 2010, 2011, 2012 Tom Santos
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,7 +43,15 @@ module RakeJavaUtil
    end
 
    def winderz?
-      RUBY_PLATFORM =~ /(win|w)32$/
+     if @winderz == nil
+       win_regex = /(win|w)32/
+       if RUBY_PLATFORM =~ /java/
+         @winderz = Config::CONFIG['host_os'] =~ win_regex ? true : false
+       else
+         @winderz = RUBY_PLATFORM =~ win_regex ? true : false
+       end
+     end
+     @winderz
    end
    
    def path_esc str_ary
@@ -295,17 +303,10 @@ module RakeJava
          
          cmd = "jar #{flags} #{@real_name}#{manifest_path}"
          
+         # Chop the roots off the paths and then add each to the jar command
          @files.each do |file_list|
-            # Hack time because the jar command is busted.  Every arg after the
-            # first file listed after a -C needs to have paths relative to the
-            # command-launch rather than the -C specified dir.  The first file arg
-            # after a -C works but subsequent ones fail.
-            fixed_list = file_list.to_a
-            unless fixed_list.empty?
-               fixed_list[0].sub!(%r[^#{file_list.root}/], '')
-            end
-
-            cmd << " -C #{file_list.root} #{space_sep(path_esc(fixed_list))}"
+            fixed_list = file_list.to_a.map {|f| f.sub(%r[^#{file_list.root}/], '')}
+            fixed_list.each {|f| cmd << " -C #{file_list.root} #{path_esc(f)}"}
          end
          
          max_cmd_len = 500
