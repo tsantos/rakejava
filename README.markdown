@@ -4,6 +4,8 @@ RakeJava is a ruby gem for use with Rake.  It lets you javac and jar Java files.
 
 1.3.6 makes JarFiles more robust so you can specify directories instead of the exhaustive list of files.  It also enables JRuby support.
 
+1.3.7 fixes the jar task for Ruby >= 1.9
+
 ### Simple Example:
 
 
